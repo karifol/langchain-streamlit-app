@@ -19,7 +19,7 @@ chat = ChatOpenAI(openai_api_key=openai_api_key, model_name="gpt-4o-mini", strea
 def search_web(query: str) -> str:
     """ウェブ検索を行います。"""
     if not query:
-        return "検索内容がカラだね。何を探してるの？"
+        return "何を探してるの？具体的に教えてよ。"
     search_tool = DuckDuckGoSearchRun()
     results = search_tool.run(query)
     if not results:
@@ -46,12 +46,25 @@ for message in st.session_state.messages:
 
 prompt = st.chat_input("どうしましたか？")
 
+
 if prompt:
+    
     # ユーザーの入力を追加
     st.session_state.messages.append({"role": "user", "content": prompt})
-
+    
+    # ユーザーの入力をチャットに表示
     with st.chat_message("user"):
         st.markdown(prompt)
+    if len(prompt) > 100:
+        st.session_state.messages.append({"role": "assistant", "content": "うるさい!黙れ！"})
+        with st.chat_message("assistant", avatar="assets/20240902_mora.png"):
+          st.markdown("うるさい!黙れ！")
+        st.stop()
+    if len(st.session_state.messages) > 20:
+        st.session_state.messages.append({"role": "assistant", "content": "仕事があるから、今日はもう終わりにするね。ばいばい"})
+        with st.chat_message("assistant", avatar="assets/20240902_mora.png"):
+          st.markdown("仕事があるから、今日はもう終わりにするね。ばいばい。")
+        st.stop()
 
     # LangChain用のメッセージリストを作成
     lc_messages = []
