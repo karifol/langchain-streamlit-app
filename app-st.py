@@ -7,6 +7,8 @@ from langchain_core.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
 import streamlit as st
 import os
+import numpy as np
+import matplotlib.pyplot as plt
 
 # OpenAI APIキーを設定
 os.environ["OPENAI_API_KEY"] = dotenv.get_key(dotenv.find_dotenv(), "OPENAI_API_KEY")
@@ -26,7 +28,7 @@ class ChatState(TypedDict):
     history : list[dict]  # 各メッセージを辞書形式で保持
 
 # OpenAIモデル初期化
-llm = ChatOpenAI(model="gpt-4o-mini")  # または gpt-3.5-turbo
+llm = ChatOpenAI(model="gpt-4o-mini")
 llm_with_react = create_react_agent(llm, tools=[search_web])
 
 # ノード1: ユーザー入力をそのまま次へ
@@ -72,7 +74,10 @@ st.title("AI Chatbot")
 # streamlit
 for message in st.session_state.messages:
     if message['role'] == 'user':
-        st.chat_message("user").markdown(message['content'])
+        st.chat_message("user").markdown(
+            f"""
+                {message['content']}
+            """)
     elif message['role'] == 'assistant':
         st.chat_message("assistant").markdown(message['content'])
 
@@ -82,16 +87,23 @@ prompt = st.chat_input("どうしましたか？")
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").markdown(prompt)
+    # st.line_chart(np.random.randn(30, 3))
 
     state = {
         "user_input": prompt,
         "bot_output": "",
-        "history": st.session_state.messages.copy()  # 初期状態の履歴をコピー
+        "history": st.session_state.messages.copy()
     }
 
     # グラフを実行
-    state = graph.invoke(state)
+    with st.spinner("考え中..."):
+        state = graph.invoke(state)
 
     # 最終的な応答を履歴に追加
     st.session_state.messages.append({"role": "assistant", "content": state["bot_output"]})
     st.chat_message("assistant").markdown(state["bot_output"])
+
+    # arr = np.random.normal(1, 1, size=100)
+    # fig, ax = plt.subplots()
+    # ax.hist(arr, bins=20)
+    # fig
