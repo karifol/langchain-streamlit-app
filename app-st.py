@@ -9,7 +9,6 @@ import streamlit as st
 import os
 
 # OpenAI APIキーを設定
-import os
 os.environ["OPENAI_API_KEY"] = dotenv.get_key(dotenv.find_dotenv(), "OPENAI_API_KEY")
 
 # ツール
