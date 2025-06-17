@@ -75,7 +75,7 @@ for message in st.session_state.messages:
     if message['role'] == 'user':
         st.chat_message("user").markdown(message['content'])
     elif message['role'] == 'assistant':
-        st.chat_message("assistant", avatar="assets/20240902_mora.png").markdown(message['content'])
+        st.chat_message("assistant").markdown(message['content'])
 
 # 最新プロンプト
 prompt = st.chat_input("どうしましたか？")
@@ -95,4 +95,4 @@ if prompt:
 
     # 最終的な応答を履歴に追加
     st.session_state.messages.append({"role": "assistant", "content": state["bot_output"]})
-    st.chat_message("assistant", avatar="assets/20240902_mora.png").markdown(state["bot_output"])
+    st.chat_message("assistant").markdown(state["bot_output"])
