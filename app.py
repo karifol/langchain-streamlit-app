@@ -1,99 +1,49 @@
-import os
+import dotenv
 import streamlit as st
-from dotenv import load_dotenv
-from datetime import datetime
+import os
+import setup_agent
 
-# LangChain
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from langchain_core.tools import tool
-from langchain_community.tools import DuckDuckGoSearchRun
+# OpenAI APIキーを設定
+os.environ["OPENAI_API_KEY"] = dotenv.get_key(dotenv.find_dotenv(), "OPENAI_API_KEY")
 
-load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
-chat = ChatOpenAI(openai_api_key=openai_api_key, model_name="gpt-4o-mini", streaming=True)
-
-# ツール
-@tool
-def search_web(query: str) -> str:
-    """ウェブ検索を行います。"""
-    if not query:
-        return "何を探してるの？具体的に教えてよ。"
-    search_tool = DuckDuckGoSearchRun()
-    results = search_tool.run(query)
-    if not results:
-        return "なんも見つからないよ"
-    return f"検索結果: {results[:500]}..."  # 最初の500文字だけ返す
-llm_with_tool = chat.bind_tools([search_web])
-
-st.title("MORALIM AI Chatbot")
+graph = setup_agent.main()
 
 if "messages" not in st.session_state:
-    today = datetime.now().strftime("%Y-%m-%d")
     st.session_state.messages = [
-        {"role": "system", "content": f"あなたはぶっきらぼうな女友達です。名前はMORALIM（もらりむ）です。今日は{today}です。"},
-        {"role": "assistant", "content": "久しぶり、元気？"},
+        {"role": "system", "content": "あなたは天才です。"},
+        {"role": "assistant", "content": "何が聞きたい？"}
     ]
 
-for message in st.session_state.messages:
-    if message["role"] == "user":
-        with st.chat_message("user"):
-            st.markdown(message["content"])
-    elif message["role"] == "assistant":
-        with st.chat_message("assistant", avatar="assets/20240902_mora.png"):
-            st.markdown(message["content"])
+# streamlit
+st.title("AI Chatbot")
 
+# streamlit
+for message in st.session_state.messages:
+    if message['role'] == 'user':
+        st.chat_message("user").markdown(
+            f"""
+                {message['content']}
+            """)
+    elif message['role'] == 'assistant':
+        st.chat_message("assistant").markdown(message['content'])
+
+# 最新プロンプト
 prompt = st.chat_input("どうしましたか？")
 
-
 if prompt:
-    
-    # ユーザーの入力を追加
     st.session_state.messages.append({"role": "user", "content": prompt})
-    
-    # ユーザーの入力をチャットに表示
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    if len(prompt) > 100:
-        st.session_state.messages.append({"role": "assistant", "content": "うるさい!黙れ！"})
-        with st.chat_message("assistant", avatar="assets/20240902_mora.png"):
-          st.markdown("うるさい!黙れ！")
-        st.stop()
-    if len(st.session_state.messages) > 20:
-        st.session_state.messages.append({"role": "assistant", "content": "仕事があるから、今日はもう終わりにするね。ばいばい"})
-        with st.chat_message("assistant", avatar="assets/20240902_mora.png"):
-          st.markdown("仕事があるから、今日はもう終わりにするね。ばいばい。")
-        st.stop()
+    st.chat_message("user").markdown(prompt)
 
-    # LangChain用のメッセージリストを作成
-    lc_messages = []
-    for m in st.session_state.messages:
-        if m["role"] == "user":
-            lc_messages.append(HumanMessage(content=m["content"]))
-        elif m["role"] == "assistant":
-            lc_messages.append(AIMessage(content=m["content"], name="assistant", avatar="assets/20240902_mora.png"))
-        elif m["role"] == "system":
-            lc_messages.append(SystemMessage(content=m["content"]))
+    state = {
+        "user_input": prompt,
+        "bot_output": "",
+        "history": st.session_state.messages.copy()
+    }
 
-    # LLM呼び出し
-    response = llm_with_tool.invoke(lc_messages)
+    # グラフを実行
+    with st.spinner("考え中..."):
+        state = graph.invoke(state)
 
-    if response.tool_calls:
-        # ツールコールがある場合は、ツールを実行
-        for call in response.tool_calls:
-            with st.chat_message("assistant", avatar="assets/20240902_mora.png"):
-                st.markdown("調べるね...")
-            st.session_state.messages.append({"role": "assistant", "content": "調べるね..."})
-            tool_result = search_web(call["args"])
-            summary_prompt = f"以下はウェブ検索の結果です。これを参考にして、ユーザーの質問に日本語で分かりやすく答えてください。\n\n検索結果:\n{tool_result}\n\n質問:\n{prompt}"
-            lc_messages.append(HumanMessage(content=summary_prompt))
-            response = chat.invoke(lc_messages)
-            with st.chat_message("assistant", avatar="assets/20240902_mora.png"):
-                st.markdown(response.content)
-        st.session_state.messages.append({"role": "assistant", "content": response.content})
-    else:
-        # ツールコールがない場合はそのまま応答
-        with st.chat_message("assistant", avatar="assets/20240902_mora.png"):
-            st.markdown(response.content)
-        st.session_state.messages.append({"role": "assistant", "content": response.content})
+    # 最終的な応答を履歴に追加
+    st.session_state.messages.append({"role": "assistant", "content": state["bot_output"]})
+    st.chat_message("assistant").markdown(state["bot_output"])
