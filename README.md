@@ -1,1 +1,1 @@
-LangChain + streamlit
+LangChain + streamlit アプリケーション
