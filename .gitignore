@@ -1,2 +1,5 @@
 venv
 .env
+assets/*
+__pycache__
+*.pyc
