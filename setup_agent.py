@@ -3,9 +3,6 @@ from langgraph.graph import StateGraph, END
 from typing import TypedDict
 from langgraph.prebuilt import create_react_agent
 import os
-from tools import search_web
-
-
 
 def main():
     # 状態定義
@@ -32,7 +29,7 @@ def main():
 
     # OpenAIモデル初期化
     llm = ChatOpenAI(model="gpt-4o-mini")
-    llm_with_react = create_react_agent(llm, tools=[search_web])
+    llm_with_react = create_react_agent(llm)
 
     # LangGraphを構築
     builder = StateGraph(ChatState)

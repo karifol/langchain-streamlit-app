@@ -15,9 +15,6 @@ def search_web(query: str) -> str:
         取得先は以下のBoothのHPです。
         https://booth.pm/ja
     """
-    
     search_tool = DuckDuckGoSearchRun()
     results = search_tool.run(query)
-    with open("search_web.json", "w") as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
     return f"検索結果: {results[:500]}..."  # 最初の500文字だけ返す

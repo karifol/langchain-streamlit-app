@@ -1,2 +1,1 @@
-MORALIM AI
 LangChain + streamlit
