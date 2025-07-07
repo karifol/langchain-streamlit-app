@@ -4,7 +4,8 @@ import os
 import setup_agent
 
 # OpenAI APIキーを設定
-# os.environ["OPENAI_API_KEY"] = dotenv.get_key(dotenv.find_dotenv(), "OPENAI_API_KEY")
+if "OPENAI_API_KEY" not in os.environ:
+    os.environ["OPENAI_API_KEY"] = dotenv.get_key(dotenv.find_dotenv(), "OPENAI_API_KEY")
 
 graph = setup_agent.main()
 
