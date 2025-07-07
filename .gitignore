@@ -1,5 +1,5 @@
 venv
 .env
-assets/*
+assets
 __pycache__
 *.pyc
