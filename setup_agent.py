@@ -29,7 +29,7 @@ def main():
 
     # OpenAIモデル初期化
     llm = ChatOpenAI(model="gpt-4o-mini")
-    llm_with_react = create_react_agent(llm)
+    llm_with_react = create_react_agent(llm, tools=[])
 
     # LangGraphを構築
     builder = StateGraph(ChatState)
