@@ -20,7 +20,7 @@ st.title("AI Chatbot")
 # streamlit
 for message in st.session_state.messages:
     if message['role'] == 'user':
-        st.chat_message("user").markdown({message['content']})
+        st.chat_message("user").markdown(message['content'])
     elif message['role'] == 'assistant':
         st.chat_message("assistant").markdown(message['content'])
 
